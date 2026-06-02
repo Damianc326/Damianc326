@@ -10,7 +10,7 @@
     --color-gold: #cfa87b;            /* Acento Dorado Boutique */
     
     /* Colores Neutros */
-    --color-bg-body: #ffffff;
+    --color-bg-body: #f4eee6;
     --color-bg-sec: #f5f7f6;          /* Blanco Frío Limpio */
     --color-bg-card: #f9fbfb;         /* Fondo de Tarjeta de Producto */
     --color-bg-banner: #faf4ee;       /* Beige Suave para Banner de Héroe */
@@ -218,7 +218,7 @@ button {
    ENCABEZADO DE NAVEGACIÓN PRINCIPAL
    ========================================================================== */
 .main-header {
-    background-color: var(--color-white);
+    background-color: var(--color-bg-body);
     height: var(--header-height);
     display: flex;
     align-items: center;
@@ -255,6 +255,12 @@ button {
 .logo-svg {
     width: 38px;
     height: 38px;
+}
+
+.logo-img {
+    width: 140px;
+    height: auto;
+    object-fit: contain;
 }
 
 .logo-text {
