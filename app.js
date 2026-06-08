@@ -583,7 +583,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     <button class="btn btn-primary" onclick="document.getElementById('cart-drawer').classList.add('hidden')" style="margin-top: 15px;">Seguir Comprando</button>
                 </div>
             `;
-            cartSubtotalPrice.textContent = 'S/ 0.00';
+            if (cartSubtotalPrice) cartSubtotalPrice.textContent = 'S/ 0.00';
+            const cartShippingPrice = document.getElementById('cart-shipping-price');
+            const cartTotalPrice = document.getElementById('cart-total-price');
+            if (cartShippingPrice) cartShippingPrice.textContent = 'Gratis';
+            if (cartTotalPrice) cartTotalPrice.textContent = 'S/ 0.00';
             cartDrawerCount.textContent = '0';
             if (buyerForm) buyerForm.classList.add('hidden');
             return;
@@ -620,7 +624,23 @@ document.addEventListener('DOMContentLoaded', () => {
             cartItemsList.appendChild(cartItemEl);
         });
         
-        cartSubtotalPrice.textContent = `S/ ${subtotal.toFixed(2)}`;
+        // Calcular costo de envío y total final
+        const agencySelect = document.getElementById('buyer-agency');
+        const shippingCost = (agencySelect && agencySelect.value === 'Otra') ? 20 : 0;
+        const total = subtotal + shippingCost;
+
+        if (cartSubtotalPrice) cartSubtotalPrice.textContent = `S/ ${subtotal.toFixed(2)}`;
+        
+        const cartShippingPrice = document.getElementById('cart-shipping-price');
+        const cartTotalPrice = document.getElementById('cart-total-price');
+        
+        if (cartShippingPrice) {
+            cartShippingPrice.textContent = shippingCost > 0 ? `S/ ${shippingCost.toFixed(2)}` : 'Gratis';
+            cartShippingPrice.style.color = shippingCost > 0 ? 'var(--color-accent)' : 'var(--color-primary-light)';
+            cartShippingPrice.style.fontWeight = '700';
+        }
+        if (cartTotalPrice) cartTotalPrice.textContent = `S/ ${total.toFixed(2)}`;
+        
         cartDrawerCount.textContent = totalItems;
         
         // Listeners for remove and qty
@@ -750,7 +770,16 @@ document.addEventListener('DOMContentLoaded', () => {
             message += `- Agencia: ${finalAgency}\n`;
             message += `- Destino: ${finalDestination}\n\n`;
             
-            message += `*Subtotal:* S/ ${subtotal.toFixed(2)}\n\n`;
+            const shippingCost = agency === 'Otra' ? 20 : 0;
+            const total = subtotal + shippingCost;
+            
+            message += `*Subtotal:* S/ ${subtotal.toFixed(2)}\n`;
+            if (shippingCost > 0) {
+                message += `- Costo de Envío: S/ ${shippingCost.toFixed(2)} (Otra Agencia)\n`;
+            } else {
+                message += `- Costo de Envío: Gratis (Agencia Shalom)\n`;
+            }
+            message += `*Total Final:* S/ ${total.toFixed(2)}\n\n`;
             message += 'Por favor, confírmame disponibilidad y los pasos para el pago. ¡Gracias!';
             
             const encodedMessage = encodeURIComponent(message);
@@ -813,6 +842,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Abrir buscador lateral automáticamente
                 openShalomSelector();
             }
+            
+            // Re-renderizar carrito para actualizar el costo de envío y total final
+            renderCart();
         });
     }
 

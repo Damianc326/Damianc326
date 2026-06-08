@@ -803,6 +803,9 @@
                         <div class="cart-form-group hidden" id="buyer-custom-agency-group" style="flex: 1;">
                             <label for="buyer-custom-agency">¿Cuál agencia?</label>
                             <input type="text" id="buyer-custom-agency" placeholder="Nombre de la agencia">
+                            <span class="agency-shipping-warning" style="font-size: 0.78rem; color: var(--color-accent); font-weight: 700; margin-top: 4px; display: block;">
+                                ⚠️ El envío por otras agencias tiene un costo adicional de S/ 20.00
+                            </span>
                         </div>
                     </div>
                     
@@ -826,12 +829,22 @@
             </div>
             
             <div class="cart-footer">
-                <div class="cart-subtotal">
-                    <span>Subtotal</span>
-                    <span id="cart-subtotal-price">S/ 0.00</span>
+                <div class="cart-pricing-summary" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px;">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.95rem; color: var(--color-text-muted);">
+                        <span>Subtotal</span>
+                        <span id="cart-subtotal-price">S/ 0.00</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 0.95rem; color: var(--color-text-muted);">
+                        <span>Costo de Envío</span>
+                        <span id="cart-shipping-price">Gratis</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-family: var(--font-headings); font-weight: 700; font-size: 1.35rem; color: var(--color-text-main); border-top: 1px solid var(--color-border); padding-top: 8px; margin-top: 4px;">
+                        <span>Total Final</span>
+                        <span id="cart-total-price">S/ 0.00</span>
+                    </div>
                 </div>
                 <p class="cart-tax-note">El envío y los detalles de pago se coordinarán por WhatsApp.</p>
-                <button class="btn btn-primary btn-large" style="width: 100%; margin-top: 15px;" id="checkout-btn">Comprar</button>
+                <button class="btn btn-primary btn-large" style="width: 100%;" id="checkout-btn">Comprar</button>
             </div>
         </div>
     </div>
