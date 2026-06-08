@@ -74,14 +74,7 @@
 
             <!-- Botones de Acción del Usuario -->
             <div class="header-actions" id="user-actions">
-                <a href="auth.html" class="action-btn" id="account-btn" aria-label="Mi Cuenta">
-                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                        <circle cx="12" cy="7" r="4" />
-                    </svg>
-                    <span>Cuenta</span>
-                </a>
+
                 <button class="action-btn cart-toggle-btn" id="cart-btn" aria-label="Carrito de compras">
                     <div class="cart-icon-wrapper">
                         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -750,14 +743,86 @@
 
     <!-- Carrito de Compras Lateral (Drawer) -->
     <div class="cart-drawer-overlay hidden" id="cart-drawer">
+        <!-- Panel Flotante Izquierdo: Buscador de Agencias Shalom -->
+        <div class="shalom-floating-selector hidden" id="shalom-floating-selector">
+            <div class="shalom-selector-header">
+                <h4>Selecciona tu Agencia Shalom</h4>
+                <button type="button" class="shalom-selector-close-btn" id="close-shalom-selector" aria-label="Cerrar Buscador">&times;</button>
+            </div>
+            <div class="shalom-selector-search-box">
+                <div class="shalom-search-wrapper">
+                    <input type="text" id="shalom-search-input" placeholder="Buscar por distrito, ciudad o calle..." autocomplete="off">
+                    <span class="shalom-search-icon">🔍</span>
+                    <button type="button" class="clear-search-btn hidden" id="clear-shalom-search">&times;</button>
+                </div>
+            </div>
+            <div class="shalom-selector-results" id="shalom-selector-results">
+                <!-- Se inyectarán los resultados aquí -->
+            </div>
+        </div>
+
         <div class="cart-drawer-content">
             <div class="cart-header">
                 <h2>Tu Carrito (<span id="cart-drawer-count">0</span>)</h2>
                 <button class="cart-close-btn" id="close-cart-btn" aria-label="Cerrar Carrito">&times;</button>
             </div>
             
-            <div class="cart-items-container" id="cart-items-list">
-                <!-- Los items se inyectarán aquí vía JS -->
+            <div class="cart-items-container" style="display: block; overflow-y: auto; flex-grow: 1; padding: 0;">
+                <div id="cart-items-list" style="padding: 20px 30px; display: flex; flex-direction: column; gap: 20px;">
+                    <!-- Los items se inyectarán aquí vía JS -->
+                </div>
+                <!-- Formulario de Datos del Comprador -->
+                <div class="cart-buyer-form-container hidden" id="cart-buyer-form">
+                    <h3 class="form-title">Datos del Comprador</h3>
+                    <div class="cart-form-group">
+                        <label for="buyer-name">Nombre Completo</label>
+                        <input type="text" id="buyer-name" placeholder="Tu nombre y apellidos completos" required>
+                    </div>
+                    <div class="cart-form-row">
+                        <div class="cart-form-group" style="flex: 0 0 100px;">
+                            <label for="buyer-doc-type">Documento</label>
+                            <select id="buyer-doc-type" class="cart-form-select">
+                                <option value="DNI">DNI</option>
+                                <option value="CE">CE</option>
+                            </select>
+                        </div>
+                        <div class="cart-form-group" style="flex: 1;">
+                            <label for="buyer-doc-number">Número</label>
+                            <input type="text" id="buyer-doc-number" placeholder="Número de documento" required>
+                        </div>
+                    </div>
+                    <!-- Agencia de Envío y Destino -->
+                    <div class="cart-form-row">
+                        <div class="cart-form-group" style="flex: 1;">
+                            <label for="buyer-agency">Agencia de Envío</label>
+                            <select id="buyer-agency" class="cart-form-select">
+                                <option value="Shalom">Shalom</option>
+                                <option value="Otra">Otra Agencia...</option>
+                            </select>
+                        </div>
+                        <div class="cart-form-group hidden" id="buyer-custom-agency-group" style="flex: 1;">
+                            <label for="buyer-custom-agency">¿Cuál agencia?</label>
+                            <input type="text" id="buyer-custom-agency" placeholder="Nombre de la agencia">
+                        </div>
+                    </div>
+                    
+                    <!-- Buscador de Agencias Shalom (Disparador) -->
+                    <div class="cart-form-group" id="shalom-agency-finder-group">
+                        <label>Agencia Shalom de Envío</label>
+                        <button type="button" class="btn-select-shalom-agency" id="btn-open-shalom-selector">
+                            <span>🔍 Seleccionar Agencia Shalom...</span>
+                        </button>
+                        <div class="selected-agency-badge hidden" id="selected-agency-badge">
+                            <strong>Agencia Seleccionada:</strong>
+                            <span id="selected-agency-info">Ninguna</span>
+                        </div>
+                    </div>
+
+                    <div class="cart-form-group">
+                        <label for="buyer-destination">Destino / Lugar de Envío</label>
+                        <input type="text" id="buyer-destination" placeholder="Ej: Lima, Miraflores / Agencia Shalom Centro" required>
+                    </div>
+                </div>
             </div>
             
             <div class="cart-footer">
@@ -765,8 +830,8 @@
                     <span>Subtotal</span>
                     <span id="cart-subtotal-price">S/ 0.00</span>
                 </div>
-                <p class="cart-tax-note">Impuestos y envío calculados en la pantalla de pago.</p>
-                <button class="btn btn-primary btn-large" style="width: 100%; margin-top: 15px;" id="checkout-btn">Proceder al Pago</button>
+                <p class="cart-tax-note">El envío y los detalles de pago se coordinarán por WhatsApp.</p>
+                <button class="btn btn-primary btn-large" style="width: 100%; margin-top: 15px;" id="checkout-btn">Comprar</button>
             </div>
         </div>
     </div>
@@ -830,6 +895,7 @@
         </div>
     </div>
 
+    <script src="agencias.js"></script>
     <script src="app.js"></script>
 </body>
 

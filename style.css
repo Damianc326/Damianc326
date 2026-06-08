@@ -1946,3 +1946,396 @@ button {
     color: var(--color-text-muted);
     text-align: center;
 }
+
+/* Formulario del Comprador en el Carrito */
+.cart-buyer-form-container {
+    padding: 25px 30px;
+    border-top: 1px solid var(--color-border);
+    background-color: #fdfcfb;
+}
+
+.cart-buyer-form-container.hidden {
+    display: none !important;
+}
+
+.cart-buyer-form-container .form-title {
+    font-family: var(--font-headings);
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    margin-bottom: 15px;
+    letter-spacing: -0.2px;
+}
+
+.cart-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 15px;
+}
+
+.cart-form-group label {
+    font-family: var(--font-headings);
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.cart-form-group input {
+    background-color: var(--color-bg-sec);
+    color: var(--color-text-main);
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-family: var(--font-body);
+    border: 1px solid transparent;
+    transition: var(--transition-normal);
+}
+
+.cart-form-group input::placeholder {
+    color: var(--color-text-muted);
+    opacity: 0.7;
+}
+
+.cart-form-group input:focus {
+    background-color: var(--color-white);
+    border-color: var(--color-primary-light);
+    box-shadow: 0 0 0 3px rgba(0, 61, 41, 0.08);
+}
+
+.cart-form-row {
+    display: flex;
+    gap: 15px;
+}
+
+.cart-form-row .cart-form-group {
+    flex: 1;
+}
+
+/* Bordes rojos para inputs inválidos en validación visual */
+.cart-form-group input.input-error,
+.cart-form-group select.input-error {
+    border-color: #e2aba6;
+    background-color: #fffaf9;
+}
+.cart-form-group input.input-error:focus,
+.cart-form-group select.input-error:focus {
+    box-shadow: 0 0 0 3px rgba(226, 171, 166, 0.2);
+}
+
+.cart-form-select {
+    background-color: var(--color-bg-sec);
+    color: var(--color-text-main);
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-family: var(--font-body);
+    border: 1px solid transparent;
+    transition: var(--transition-normal);
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23444444' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 14px;
+    padding-right: 30px;
+}
+
+.cart-form-select:focus {
+    background-color: var(--color-white);
+    border-color: var(--color-primary-light);
+    box-shadow: 0 0 0 3px rgba(0, 61, 41, 0.08);
+}
+
+/* Buscador de Agencias Shalom (Disparador en el Carrito) */
+.btn-select-shalom-agency {
+    width: 100%;
+    background-color: var(--color-bg-sec);
+    color: var(--color-text-main);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-align: left;
+    cursor: pointer;
+    transition: var(--transition-normal);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.btn-select-shalom-agency:hover {
+    background-color: #f0f6f3;
+    border-color: var(--color-primary-light);
+    color: var(--color-primary);
+}
+
+.btn-select-shalom-agency:focus {
+    box-shadow: 0 0 0 3px rgba(0, 61, 41, 0.08);
+}
+
+/* Badge de Agencia Seleccionada */
+.selected-agency-badge {
+    margin-top: 8px;
+    padding: 12px 14px;
+    background-color: #f0f7f4;
+    border: 1px dashed var(--color-primary-light);
+    border-radius: 8px;
+    font-size: 0.85rem;
+    color: var(--color-primary-dark);
+    line-height: 1.4;
+    animation: fadeIn 0.25s ease;
+}
+
+.selected-agency-badge.hidden {
+    display: none !important;
+}
+
+.selected-agency-badge strong {
+    color: var(--color-primary);
+    display: block;
+    margin-bottom: 4px;
+    font-family: var(--font-headings);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-3px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Panel Flotante Izquierdo (Buscador de Agencias) */
+.shalom-floating-selector {
+    background-color: var(--color-bg-sec);
+    border-right: 1px solid var(--color-border);
+    width: 450px;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: -10px 0 30px rgba(0, 0, 0, 0.08);
+    z-index: 2900;
+    animation: slideInLeftPanel 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.shalom-floating-selector.hidden {
+    display: none !important;
+}
+
+@keyframes slideInLeftPanel {
+    from {
+        transform: translateX(80px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.shalom-selector-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 25px 30px;
+    background-color: var(--color-white);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.shalom-selector-header h4 {
+    font-family: var(--font-headings);
+    font-size: 1.25rem;
+    color: var(--color-primary);
+    margin: 0;
+    font-weight: 700;
+}
+
+.shalom-selector-close-btn {
+    font-size: 2.2rem;
+    color: var(--color-text-muted);
+    line-height: 1;
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: color var(--transition-fast);
+}
+
+.shalom-selector-close-btn:hover {
+    color: var(--color-text-main);
+}
+
+.shalom-selector-search-box {
+    padding: 20px 30px;
+    background-color: var(--color-white);
+    border-bottom: 1px solid var(--color-border);
+}
+
+/* Search Wrapper inside Selector Panel */
+.shalom-search-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.shalom-search-wrapper input {
+    background-color: var(--color-bg-sec);
+    color: var(--color-text-main);
+    padding: 12px 40px 12px 16px;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-family: var(--font-body);
+    border: 1px solid transparent;
+    transition: var(--transition-normal);
+    width: 100%;
+    outline: none;
+}
+
+.shalom-search-wrapper input:focus {
+    background-color: var(--color-white);
+    border-color: var(--color-primary-light);
+    box-shadow: 0 0 0 3px rgba(0, 61, 41, 0.08);
+}
+
+.shalom-search-icon {
+    position: absolute;
+    right: 14px;
+    color: var(--color-text-muted);
+    pointer-events: none;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.clear-search-btn {
+    position: absolute;
+    right: 10px;
+    background: none;
+    border: none;
+    color: var(--color-text-muted);
+    font-size: 1.25rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    transition: var(--transition-fast);
+}
+
+.clear-search-btn:hover {
+    background-color: var(--color-border);
+    color: var(--color-text-main);
+}
+
+.clear-search-btn.hidden {
+    display: none !important;
+}
+
+/* Resultados scrollables */
+.shalom-selector-results {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 20px 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Scrollbar del Panel */
+.shalom-selector-results::-webkit-scrollbar {
+    width: 6px;
+}
+.shalom-selector-results::-webkit-scrollbar-track {
+    background: transparent;
+}
+.shalom-selector-results::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 3px;
+}
+.shalom-selector-results::-webkit-scrollbar-thumb:hover {
+    background: var(--color-text-muted);
+}
+
+/* Tarjetas de Agencia */
+.shalom-panel-agency-card {
+    background-color: var(--color-white);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all var(--transition-normal);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    text-align: left;
+    box-shadow: var(--shadow-soft);
+}
+
+.shalom-panel-agency-card:hover {
+    border-color: var(--color-primary-light);
+    box-shadow: var(--shadow-medium);
+    transform: translateY(-2px);
+}
+
+.shalom-panel-agency-card.active {
+    border-color: var(--color-primary);
+    background-color: #f0f7f4;
+    box-shadow: 0 0 0 3px rgba(0, 61, 41, 0.05);
+}
+
+.shalom-panel-agency-name {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    font-family: var(--font-headings);
+}
+
+.shalom-panel-agency-address {
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+    line-height: 1.4;
+}
+
+.shalom-panel-agency-select-indicator {
+    align-self: flex-end;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--color-primary-light);
+    letter-spacing: 0.5px;
+    margin-top: 4px;
+    transition: color var(--transition-fast);
+}
+
+.shalom-panel-agency-card:hover .shalom-panel-agency-select-indicator {
+    color: var(--color-primary-dark);
+}
+
+.no-results-msg {
+    padding: 20px;
+    font-size: 0.9rem;
+    color: var(--color-text-muted);
+    text-align: center;
+}
+
+/* Diseño Responsivo para el Panel Flotante Izquierdo */
+@media (max-width: 768px) {
+    .shalom-floating-selector {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: 3100; /* Superpuesto por encima del carrito en móviles */
+        border-right: none;
+    }
+}
+
+
