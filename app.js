@@ -50,6 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
             e.stopPropagation();
             favBtn.classList.toggle('liked');
             
+            const title = card.querySelector('.product-title').textContent;
             const isLiked = favBtn.classList.contains('liked');
             if (isLiked) {
                 showToast(`¡"${title}" añadido a la lista de deseos! ❤️`);
@@ -64,12 +65,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Añadir al carrito
-    function addToCart(title, price, qty, img, size = 'Única') {
-        const existingItem = cartItems.find(item => item.title === title && item.size === size);
+    function addToCart(title, price, qty, img, size = 'Única', color = 'Único') {
+        const existingItem = cartItems.find(item => item.title === title && item.size === size && item.color === color);
         if (existingItem) {
             existingItem.qty += qty;
         } else {
-            cartItems.push({ title, price, qty, img, size, id: Date.now() });
+            cartItems.push({ title, price, qty, img, size, color, id: Date.now() });
         }
         updateCartBadge();
         renderCart();
@@ -434,6 +435,58 @@ document.addEventListener('DOMContentLoaded', () => {
             currentQty = 1;
             qtyValue.textContent = currentQty;
             
+            // Renderizar colores dinámicamente
+            const colorOptionsContainer = document.querySelector('.modal-details-col .color-options');
+            if (colorOptionsContainer) {
+                colorOptionsContainer.innerHTML = '';
+                const colorsJson = card.getAttribute('data-colors');
+                const colors = colorsJson ? JSON.parse(colorsJson) : ["#f4f4f4"];
+                
+                const colorNamesMap = {
+                    "#ff7a00": "Naranja",
+                    "#333333": "Negro",
+                    "#f4f4f4": "Blanco",
+                    "#faf6ef": "Crema",
+                    "#faf4ee": "Alabastro",
+                    "#fcfaf0": "Hueso",
+                    "#eadecd": "Beige",
+                    "#3e5a7a": "Azul Acero",
+                    "#e2e8e4": "Gris Claro",
+                    "#e7eee9": "Verde Menta"
+                };
+
+                colors.forEach((color, idx) => {
+                    const btn = document.createElement('button');
+                    btn.className = `color-btn${idx === 0 ? ' active' : ''}`;
+                    btn.style.background = color;
+                    btn.setAttribute('data-color', color);
+                    btn.setAttribute('data-color-name', colorNamesMap[color] || color);
+                    
+                    btn.addEventListener('click', () => {
+                        colorOptionsContainer.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        
+                        const colorImages = JSON.parse(card.getAttribute('data-color-images') || '{}');
+                        if (colorImages[color]) {
+                            const imgEl = modalImageContainer.querySelector('img');
+                            if (imgEl) {
+                                imgEl.src = colorImages[color];
+                            }
+                        } else {
+                            const svgPaths = modalImageContainer.querySelectorAll('svg path');
+                            svgPaths.forEach(path => {
+                                const currentFill = path.getAttribute('fill');
+                                if (currentFill && currentFill !== 'none') {
+                                    path.setAttribute('fill', color);
+                                }
+                            });
+                        }
+                    });
+                    
+                    colorOptionsContainer.appendChild(btn);
+                });
+            }
+            
             productModal.classList.remove('hidden');
             document.body.style.overflow = 'hidden';
         });
@@ -518,9 +571,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const svgArt = modalImageContainer.innerHTML;
         const activeSizeBtn = document.querySelector('.size-btn.active');
         const size = activeSizeBtn ? activeSizeBtn.textContent : 'Única';
+        const activeColorBtn = document.querySelector('.modal-details-col .color-btn.active');
+        const color = activeColorBtn ? (activeColorBtn.getAttribute('data-color-name') || 'Único') : 'Único';
         
-        addToCart(title, price, currentQty, svgArt, size);
-        showToast(`¡${currentQty}x "${title}" (Talla ${size}) añadido al carrito!`);
+        addToCart(title, price, currentQty, svgArt, size, color);
+        showToast(`¡${currentQty}x "${title}" (Talla ${size}, Color ${color}) añadido al carrito!`);
         closeModal();
     });
     
@@ -530,8 +585,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const svgArt = modalImageContainer.innerHTML;
         const activeSizeBtn = document.querySelector('.size-btn.active');
         const size = activeSizeBtn ? activeSizeBtn.textContent : 'Única';
+        const activeColorBtn = document.querySelector('.modal-details-col .color-btn.active');
+        const color = activeColorBtn ? (activeColorBtn.getAttribute('data-color-name') || 'Único') : 'Único';
         
-        addToCart(title, price, currentQty, svgArt, size);
+        addToCart(title, price, currentQty, svgArt, size, color);
         closeModal();
         cartDrawer.classList.remove('hidden');
     });
@@ -612,7 +669,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <span>${item.title}</span>
                         <button class="cart-item-remove" data-index="${index}">&times;</button>
                     </div>
-                    <div style="font-size: 0.85rem; color: var(--color-text-muted); margin-bottom: 5px;">Talla: <strong style="color: var(--color-text-main);">${item.size}</strong></div>
+                    <div style="font-size: 0.85rem; color: var(--color-text-muted); margin-bottom: 5px;">Talla: <strong style="color: var(--color-text-main);">${item.size}</strong> | Color: <strong style="color: var(--color-text-main);">${item.color || 'Único'}</strong></div>
                     <div class="cart-item-price">S/ ${item.price.toFixed(2)}</div>
                     <div class="cart-qty-controls">
                         <button class="cart-qty-btn decrease-qty" data-index="${index}">&minus;</button>
@@ -752,7 +809,7 @@ document.addEventListener('DOMContentLoaded', () => {
             cartItems.forEach(item => {
                 const itemTotal = item.price * item.qty;
                 subtotal += itemTotal;
-                message += `- ${item.qty}x ${item.title} (Talla: ${item.size}) - S/ ${itemTotal.toFixed(2)}\n`;
+                message += `- ${item.qty}x ${item.title} (Talla: ${item.size}, Color: ${item.color || 'Único'}) - S/ ${itemTotal.toFixed(2)}\n`;
             });
             
             message += `\n*Datos del Comprador:*\n`;
