@@ -1,0 +1,168 @@
+/* ==========================================================================
+   ESTILOS ESPECÍFICOS PARA AUTENTICACIÓN (LOGIN / REGISTRO)
+   ========================================================================== */
+
+/* Fondo de pantalla completa centrado */
+.auth-body {
+    background-color: var(--color-bg-body); /* Crema/Beige claro */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 20px;
+}
+
+.auth-container {
+    width: 100%;
+    max-width: 450px;
+    margin: auto;
+}
+
+/* Tarjeta Blanca con bordes suaves y sombras */
+.auth-card {
+    background-color: var(--color-white);
+    border-radius: 24px;
+    padding: 40px;
+    box-shadow: var(--shadow-elevated);
+    width: 100%;
+    overflow: hidden;
+    position: relative;
+}
+
+/* Tipografía de títulos */
+.auth-title {
+    font-family: var(--font-headings);
+    color: var(--color-primary);
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    text-align: center;
+}
+
+.auth-subtitle {
+    color: var(--color-text-muted);
+    text-align: center;
+    font-size: 0.95rem;
+    margin-bottom: 30px;
+}
+
+/* Contenedor de transiciones entre formularios */
+.forms-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.form-section {
+    width: 100%;
+    transition: opacity var(--transition-normal), transform var(--transition-normal);
+}
+
+.form-section.hidden-form {
+    display: none;
+}
+
+/* Grupos de campos de formulario */
+.form-group {
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    font-family: var(--font-headings);
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--color-text-main);
+    margin-bottom: 8px;
+}
+
+.form-group input {
+    background-color: var(--color-bg-sec);
+    border: 1px solid var(--color-border);
+    padding: 12px 16px;
+    border-radius: 12px;
+    font-family: var(--font-body);
+    font-size: 1rem;
+    color: var(--color-text-main);
+    transition: var(--transition-fast);
+}
+
+.form-group input:focus {
+    background-color: var(--color-white);
+    border-color: var(--color-primary-light);
+    box-shadow: 0 0 0 3px rgba(0, 61, 41, 0.08);
+}
+
+.form-group input.input-error {
+    border-color: #d32f2f;
+    background-color: #fceceb;
+}
+
+.form-group input.input-success {
+    border-color: #2e7d32;
+}
+
+/* Mensajes de error */
+.error-message {
+    color: #d32f2f;
+    font-size: 0.8rem;
+    margin-top: 6px;
+    display: none;
+    font-weight: 500;
+}
+
+.error-message.show {
+    display: block;
+}
+
+/* Botón principal ocupando el ancho total */
+.btn-full {
+    width: 100%;
+    padding: 14px;
+    font-size: 1.05rem;
+    margin-top: 10px;
+    border-radius: 12px;
+    /* Verde oscuro: var(--color-primary) */
+}
+
+.btn-full:disabled {
+    background-color: var(--color-border);
+    border-color: var(--color-border);
+    color: var(--color-text-muted);
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Texto de alternancia al final */
+.auth-toggle-text {
+    text-align: center;
+    margin-top: 24px;
+    font-size: 0.95rem;
+    color: var(--color-text-muted);
+}
+
+.toggle-link {
+    color: var(--color-primary);
+    font-weight: 600;
+    text-decoration: none;
+    transition: color var(--transition-fast);
+}
+
+.toggle-link:hover {
+    color: var(--color-accent);
+    text-decoration: underline;
+}
+
+/* Responsividad */
+@media (max-width: 480px) {
+    .auth-card {
+        padding: 30px 20px;
+        border-radius: 20px;
+    }
+    
+    .auth-title {
+        font-size: 1.5rem;
+    }
+}

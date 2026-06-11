@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // VARIABLES DE ESTADO
     // ==========================================================================
     let cartItems = [];
+    let selectedShalomAgency = null;
     
     // Elementos del DOM
     const cartCountBadge = document.getElementById('cart-count-badge');
@@ -21,10 +22,36 @@ document.addEventListener('DOMContentLoaded', () => {
     const typeCheckboxes = document.querySelectorAll('#filter-device-type input[type="checkbox"]');
     const priceRadios = document.querySelectorAll('#filter-price input[type="radio"]');
     const ratingRadios = document.querySelectorAll('#filter-review input[type="radio"]');
-    const finishCheckboxes = document.querySelectorAll('#filter-finish input[type="checkbox"]');
     const materialCheckboxes = document.querySelectorAll('#filter-material input[type="checkbox"]');
     const offerCheckboxes = document.querySelectorAll('#filter-offer input[type="checkbox"]');
     
+    // Mapa global de nombres de colores
+    const colorNamesMap = {
+        "#ff7a00": "Naranja",
+        "#333333": "Negro",
+        "#f4f4f4": "Blanco",
+        "#faf6ef": "Crema",
+        "#faf4ee": "Alabastro",
+        "#fcfaf0": "Hueso",
+        "#eadecd": "Beige",
+        "#3e5a7a": "Azul Acero",
+        "#e2e8e4": "Gris Claro",
+        "#e7eee9": "Verde Menta",
+        "#b0b0b0": "Gris",
+        "#8b5a2b": "Marrón",
+        "#b22222": "Rojo",
+        "#4169e1": "Azul Eléctrico",
+        "#1d2a44": "Azul Acero",
+        "#c68a4c": "Camel",
+        "#7c9e83": "Verde Cargo",
+        "#0b1d3a": "Azul Marino",
+        "#a0e0ff": "Celeste",
+        "#1a5fb4": "Azul",
+        "#76e5c1": "Cemento",
+        "#ffd54f": "Amarillo",
+        "#a3e12c": "Verde Olivo"
+    };
+
     // Objeto del estado activo de los filtros
     const activeFilters = {
         category: 'all',
@@ -32,7 +59,6 @@ document.addEventListener('DOMContentLoaded', () => {
         types: [],
         priceRange: 'all',
         minRating: 0,
-        finishes: [],
         materials: [],
         offers: []
     };
@@ -49,6 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
             e.stopPropagation();
             favBtn.classList.toggle('liked');
             
+            const title = card.querySelector('.product-title').textContent;
             const isLiked = favBtn.classList.contains('liked');
             if (isLiked) {
                 showToast(`¡"${title}" añadido a la lista de deseos! ❤️`);
@@ -63,12 +90,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Añadir al carrito
-    function addToCart(title, price, qty, img, size = 'Única') {
-        const existingItem = cartItems.find(item => item.title === title && item.size === size);
+    function addToCart(title, price, qty, img, size = 'Única', color = 'Único') {
+        const existingItem = cartItems.find(item => item.title === title && item.size === size && item.color === color);
         if (existingItem) {
             existingItem.qty += qty;
         } else {
-            cartItems.push({ title, price, qty, img, size, id: Date.now() });
+            cartItems.push({ title, price, qty, img, size, color, id: Date.now() });
         }
         updateCartBadge();
         renderCart();
@@ -127,6 +154,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 link.style.fontWeight = '700';
                 
                 applyFilters();
+
+                // Redirigir (desplazar) la pantalla hacia la cuadrícula de productos
+                const targetSection = document.getElementById('products-grid-section');
+                if (targetSection) {
+                    targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
             });
         });
 
@@ -157,14 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
-        // Checkboxes de acabados
-        finishCheckboxes.forEach(cb => {
-            cb.addEventListener('change', () => {
-                updateCheckboxFilter('finishes', finishCheckboxes);
-                toggleFilterBtnActive('filter-finish', activeFilters.finishes.length > 0);
-                applyFilters();
-            });
-        });
+
 
         // Checkboxes de materiales
         materialCheckboxes.forEach(cb => {
@@ -185,7 +211,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         // Botón de restablecer filtros en estado vacío
-        resetFiltersBtn.addEventListener('click', resetAllFilters);
+        if (resetFiltersBtn) {
+            resetFiltersBtn.addEventListener('click', resetAllFilters);
+        }
     }
 
     // Auxiliar: Almacena los valores de checkboxes seleccionados
@@ -216,7 +244,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const rating = parseFloat(card.getAttribute('data-rating'));
             const category = card.getAttribute('data-category');
             const type = card.getAttribute('data-type');
-            const finish = card.getAttribute('data-finish');
             const material = card.getAttribute('data-material');
             const offer = card.getAttribute('data-offer');
             
@@ -226,10 +253,16 @@ document.addEventListener('DOMContentLoaded', () => {
             // Filtrado por categoría
             const matchesCategory = activeFilters.category === 'all' || category === activeFilters.category;
 
+            // Obtener nombres de colores del producto para la búsqueda
+            const colorsJson = card.getAttribute('data-colors');
+            const colorsList = colorsJson ? JSON.parse(colorsJson) : [];
+            const colorNames = colorsList.map(hex => (colorNamesMap[hex] || '').toLowerCase());
+
             // Filtrado por búsqueda en caja de texto
             const matchesSearch = activeFilters.searchQuery === '' || 
                                   title.includes(activeFilters.searchQuery) || 
-                                  subtext.includes(activeFilters.searchQuery);
+                                  subtext.includes(activeFilters.searchQuery) ||
+                                  colorNames.some(name => name.includes(activeFilters.searchQuery));
 
             // Filtrado por tipo de dispositivo
             const matchesType = activeFilters.types.length === 0 || activeFilters.types.includes(type);
@@ -247,9 +280,6 @@ document.addEventListener('DOMContentLoaded', () => {
             // Filtrado por valoración estrellas
             const matchesRating = rating >= activeFilters.minRating;
 
-            // Filtrado por acabados
-            const matchesFinish = activeFilters.finishes.length === 0 || activeFilters.finishes.includes(finish);
-
             // Filtrado por materiales
             const matchesMaterial = activeFilters.materials.length === 0 || activeFilters.materials.includes(material);
 
@@ -258,7 +288,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Intersección de todas las condiciones de filtrado
             const isVisible = matchesCategory && matchesSearch && matchesType && matchesPrice && 
-                              matchesRating && matchesFinish && matchesMaterial && matchesOffer;
+                              matchesRating && matchesMaterial && matchesOffer;
 
             if (isVisible) {
                 card.classList.remove('hidden');
@@ -307,10 +337,7 @@ document.addEventListener('DOMContentLoaded', () => {
         activeFilters.minRating = 0;
         toggleFilterBtnActive('filter-review', false);
 
-        // Desmarcar checkboxes de acabados
-        finishCheckboxes.forEach(cb => cb.checked = false);
-        activeFilters.finishes = [];
-        toggleFilterBtnActive('filter-finish', false);
+
 
         // Desmarcar checkboxes de materiales
         materialCheckboxes.forEach(cb => cb.checked = false);
@@ -332,10 +359,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================================================
     
     function initSorting() {
-        sortSelect.addEventListener('change', (e) => {
-            const criteria = e.target.value;
-            sortGridItems(criteria);
-        });
+        if (sortSelect) {
+            sortSelect.addEventListener('change', (e) => {
+                const criteria = e.target.value;
+                sortGridItems(criteria);
+            });
+        }
     }
 
     // Reordenar elementos de la cuadrícula en el DOM
@@ -421,9 +450,53 @@ document.addEventListener('DOMContentLoaded', () => {
             modalProductTitle.textContent = title;
             modalCategory.textContent = category.charAt(0).toUpperCase() + category.slice(1);
             modalDesc.textContent = desc;
+            
+            // Renderizar características (viñetas) si existen
+            const featuresJson = card.getAttribute('data-features');
+            const modalFeatures = document.getElementById('modal-features');
+            if (modalFeatures) {
+                if (featuresJson) {
+                    modalFeatures.innerHTML = '';
+                    const features = JSON.parse(featuresJson);
+                    features.forEach(feat => {
+                        const li = document.createElement('li');
+                        li.innerHTML = feat.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                        li.style.marginBottom = '8px';
+                        modalFeatures.appendChild(li);
+                    });
+                    modalFeatures.style.display = 'block';
+                } else {
+                    modalFeatures.style.display = 'none';
+                }
+            }
+
+            // Renderizar precio de oferta y precio regular (tachado) si existe
+            const priceRegular = card.getAttribute('data-price-regular');
             modalPrice.textContent = `S/ ${price.toFixed(2)}`;
+            const modalPriceRegular = document.getElementById('modal-price-regular');
+            if (modalPriceRegular) {
+                if (priceRegular) {
+                    modalPriceRegular.textContent = `S/ ${parseFloat(priceRegular).toFixed(2)}`;
+                    modalPriceRegular.style.display = 'inline';
+                    modalPrice.style.color = 'var(--color-accent)'; // destacar oferta
+                } else {
+                    modalPriceRegular.style.display = 'none';
+                    modalPrice.style.color = 'var(--color-text-main)'; // color normal
+                }
+            }
+            
             if(modalFinancing) modalFinancing.style.display = 'none';
-            modalImageContainer.innerHTML = svgArt;
+            
+            const colorImagesJson = card.getAttribute('data-color-images');
+            if (colorImagesJson) {
+                const colorImages = JSON.parse(colorImagesJson);
+                const colors = JSON.parse(card.getAttribute('data-colors') || '[]');
+                const firstColor = colors[0];
+                const imageUrl = colorImages[firstColor] || card.querySelector('img').src;
+                modalImageContainer.innerHTML = `<img src="${imageUrl}" alt="${title}" class="product-img-display">`;
+            } else {
+                modalImageContainer.innerHTML = svgArt;
+            }
             
             modalRatingContainer.innerHTML = `<div class="stars-container" style="display:flex;">${ratingHtml}</div> <span class="modal-review-count">${reviewCount}</span>`;
             
@@ -432,6 +505,58 @@ document.addEventListener('DOMContentLoaded', () => {
             
             currentQty = 1;
             qtyValue.textContent = currentQty;
+            
+            // Renderizar colores dinámicamente
+            const colorOptionsContainer = document.querySelector('.modal-details-col .color-options');
+            if (colorOptionsContainer) {
+                colorOptionsContainer.innerHTML = '';
+                const colorsJson = card.getAttribute('data-colors');
+                const colors = colorsJson ? JSON.parse(colorsJson) : ["#f4f4f4"];
+                
+
+
+                const colorImages = JSON.parse(card.getAttribute('data-color-images') || '{}');
+
+                colors.forEach((color, idx) => {
+                    const btn = document.createElement('button');
+                    btn.className = `color-btn${idx === 0 ? ' active' : ''}`;
+                    btn.setAttribute('data-color', color);
+                    const colorName = colorNamesMap[color] || color;
+                    btn.setAttribute('data-color-name', colorName);
+                    
+                    const dot = document.createElement('span');
+                    dot.className = 'color-swatch-dot';
+                    dot.style.backgroundColor = color;
+                    btn.appendChild(dot);
+                    
+                    const label = document.createElement('span');
+                    label.className = 'color-name-label';
+                    label.textContent = colorName;
+                    btn.appendChild(label);
+                    
+                    btn.addEventListener('click', () => {
+                        colorOptionsContainer.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        
+                        if (colorImages[color]) {
+                            const imgEl = modalImageContainer.querySelector('img');
+                            if (imgEl) {
+                                imgEl.src = colorImages[color];
+                            }
+                        } else {
+                            const svgPaths = modalImageContainer.querySelectorAll('svg path');
+                            svgPaths.forEach(path => {
+                                const currentFill = path.getAttribute('fill');
+                                if (currentFill && currentFill !== 'none') {
+                                    path.setAttribute('fill', color);
+                                }
+                            });
+                        }
+                    });
+                    
+                    colorOptionsContainer.appendChild(btn);
+                });
+            }
             
             productModal.classList.remove('hidden');
             document.body.style.overflow = 'hidden';
@@ -517,9 +642,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const svgArt = modalImageContainer.innerHTML;
         const activeSizeBtn = document.querySelector('.size-btn.active');
         const size = activeSizeBtn ? activeSizeBtn.textContent : 'Única';
+        const activeColorBtn = document.querySelector('.modal-details-col .color-btn.active');
+        const color = activeColorBtn ? (activeColorBtn.getAttribute('data-color-name') || 'Único') : 'Único';
         
-        addToCart(title, price, currentQty, svgArt, size);
-        showToast(`¡${currentQty}x "${title}" (Talla ${size}) añadido al carrito!`);
+        addToCart(title, price, currentQty, svgArt, size, color);
+        showToast(`¡${currentQty}x "${title}" (Talla ${size}, Color ${color}) añadido al carrito!`);
         closeModal();
     });
     
@@ -529,8 +656,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const svgArt = modalImageContainer.innerHTML;
         const activeSizeBtn = document.querySelector('.size-btn.active');
         const size = activeSizeBtn ? activeSizeBtn.textContent : 'Única';
+        const activeColorBtn = document.querySelector('.modal-details-col .color-btn.active');
+        const color = activeColorBtn ? (activeColorBtn.getAttribute('data-color-name') || 'Único') : 'Único';
         
-        addToCart(title, price, currentQty, svgArt, size);
+        addToCart(title, price, currentQty, svgArt, size, color);
         closeModal();
         cartDrawer.classList.remove('hidden');
     });
@@ -570,6 +699,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
     function renderCart() {
+        const buyerForm = document.getElementById('cart-buyer-form');
         if (cartItems.length === 0) {
             cartItemsList.innerHTML = `
                 <div class="empty-cart-msg">
@@ -581,10 +711,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     <button class="btn btn-primary" onclick="document.getElementById('cart-drawer').classList.add('hidden')" style="margin-top: 15px;">Seguir Comprando</button>
                 </div>
             `;
-            cartSubtotalPrice.textContent = 'S/ 0.00';
+            if (cartSubtotalPrice) cartSubtotalPrice.textContent = 'S/ 0.00';
+            const cartShippingPrice = document.getElementById('cart-shipping-price');
+            const cartTotalPrice = document.getElementById('cart-total-price');
+            if (cartShippingPrice) cartShippingPrice.textContent = 'Gratis';
+            if (cartTotalPrice) cartTotalPrice.textContent = 'S/ 0.00';
             cartDrawerCount.textContent = '0';
+            if (buyerForm) buyerForm.classList.add('hidden');
             return;
         }
+        
+        if (buyerForm) buyerForm.classList.remove('hidden');
         
         let subtotal = 0;
         let totalItems = 0;
@@ -603,7 +740,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <span>${item.title}</span>
                         <button class="cart-item-remove" data-index="${index}">&times;</button>
                     </div>
-                    <div style="font-size: 0.85rem; color: var(--color-text-muted); margin-bottom: 5px;">Talla: <strong style="color: var(--color-text-main);">${item.size}</strong></div>
+                    <div style="font-size: 0.85rem; color: var(--color-text-muted); margin-bottom: 5px;">Talla: <strong style="color: var(--color-text-main);">${item.size}</strong> | Color: <strong style="color: var(--color-text-main);">${item.color || 'Único'}</strong></div>
                     <div class="cart-item-price">S/ ${item.price.toFixed(2)}</div>
                     <div class="cart-qty-controls">
                         <button class="cart-qty-btn decrease-qty" data-index="${index}">&minus;</button>
@@ -615,7 +752,23 @@ document.addEventListener('DOMContentLoaded', () => {
             cartItemsList.appendChild(cartItemEl);
         });
         
-        cartSubtotalPrice.textContent = `S/ ${subtotal.toFixed(2)}`;
+        // Calcular costo de envío y total final
+        const agencySelect = document.getElementById('buyer-agency');
+        const shippingCost = (agencySelect && agencySelect.value === 'Otra') ? 20 : 0;
+        const total = subtotal + shippingCost;
+
+        if (cartSubtotalPrice) cartSubtotalPrice.textContent = `S/ ${subtotal.toFixed(2)}`;
+        
+        const cartShippingPrice = document.getElementById('cart-shipping-price');
+        const cartTotalPrice = document.getElementById('cart-total-price');
+        
+        if (cartShippingPrice) {
+            cartShippingPrice.textContent = shippingCost > 0 ? `S/ ${shippingCost.toFixed(2)}` : 'Gratis';
+            cartShippingPrice.style.color = shippingCost > 0 ? 'var(--color-accent)' : 'var(--color-primary-light)';
+            cartShippingPrice.style.fontWeight = '700';
+        }
+        if (cartTotalPrice) cartTotalPrice.textContent = `S/ ${total.toFixed(2)}`;
+        
         cartDrawerCount.textContent = totalItems;
         
         // Listeners for remove and qty
@@ -646,6 +799,527 @@ document.addEventListener('DOMContentLoaded', () => {
                 updateCartBadge();
                 renderCart();
             });
+        });
+    }
+
+    // Configurar redirección a WhatsApp al hacer click en Comprar (checkout-btn)
+    const checkoutBtn = document.getElementById('checkout-btn');
+    if (checkoutBtn) {
+        checkoutBtn.addEventListener('click', () => {
+            if (cartItems.length === 0) {
+                showToast('Tu carrito está vacío. Añade algunas prendas para comprar.');
+                return;
+            }
+            
+            // Referencias a los campos del formulario del comprador
+            const nameInput = document.getElementById('buyer-name');
+            const docTypeSelect = document.getElementById('buyer-doc-type');
+            const docNumberInput = document.getElementById('buyer-doc-number');
+            const agencySelect = document.getElementById('buyer-agency');
+            const customAgencyInput = document.getElementById('buyer-custom-agency');
+            const destinationInput = document.getElementById('buyer-destination');
+            const btnOpenShalomSelector = document.getElementById('btn-open-shalom-selector');
+            
+            const name = nameInput.value.trim();
+            const docType = docTypeSelect.value;
+            const docNumber = docNumberInput.value.trim();
+            const agency = agencySelect.value;
+            const customAgency = customAgencyInput.value.trim();
+            const destination = destinationInput.value.trim();
+            
+            // Validaciones
+            let hasErrors = false;
+            
+            // Limpiar clases de error previas
+            const allInputs = [nameInput, docNumberInput, customAgencyInput, destinationInput];
+            if (btnOpenShalomSelector) allInputs.push(btnOpenShalomSelector);
+            allInputs.forEach(el => el.classList.remove('input-error'));
+            
+            if (!name) {
+                nameInput.classList.add('input-error');
+                hasErrors = true;
+            }
+            
+            // Validar según el tipo de documento (DNI: 8 dígitos numéricos, CE: 9 dígitos numéricos)
+            if (docType === 'DNI') {
+                const dniRegex = /^\d{8}$/;
+                if (!dniRegex.test(docNumber)) {
+                    docNumberInput.classList.add('input-error');
+                    hasErrors = true;
+                }
+            } else if (docType === 'CE') {
+                const ceRegex = /^\d{9}$/;
+                if (!ceRegex.test(docNumber)) {
+                    docNumberInput.classList.add('input-error');
+                    hasErrors = true;
+                }
+            }
+
+            // Validar agencia y destino
+            if (agency === 'Otra' && !customAgency) {
+                customAgencyInput.classList.add('input-error');
+                hasErrors = true;
+            }
+            if (agency === 'Shalom' && !selectedShalomAgency) {
+                if (btnOpenShalomSelector) btnOpenShalomSelector.classList.add('input-error');
+                hasErrors = true;
+            }
+            if (!destination) {
+                destinationInput.classList.add('input-error');
+                hasErrors = true;
+            }
+            
+            if (hasErrors) {
+                showToast('⚠️ Completa tus datos, agencia y destino de envío de forma correcta.');
+                return;
+            }
+            
+            let message = '¡Hola! Quisiera comprar los siguientes productos en Out Silver:\n\n';
+            let subtotal = 0;
+            
+            cartItems.forEach(item => {
+                const itemTotal = item.price * item.qty;
+                subtotal += itemTotal;
+                message += `- ${item.qty}x ${item.title} (Talla: ${item.size}, Color: ${item.color || 'Único'}) - S/ ${itemTotal.toFixed(2)}\n`;
+            });
+            
+            message += `\n*Datos del Comprador:*\n`;
+            message += `- Nombre Completo: ${name}\n`;
+            message += `- Documento: ${docType} (${docNumber})\n\n`;
+
+            const finalAgency = agency === 'Shalom' && selectedShalomAgency 
+                ? `Shalom (Agencia: ${selectedShalomAgency.name})` 
+                : customAgency;
+            const finalDestination = agency === 'Shalom' && selectedShalomAgency
+                ? selectedShalomAgency.address
+                : destination;
+
+            message += `*Datos de Envío:*\n`;
+            message += `- Agencia: ${finalAgency}\n`;
+            message += `- Destino: ${finalDestination}\n\n`;
+            
+            const shippingCost = agency === 'Otra' ? 20 : 0;
+            const total = subtotal + shippingCost;
+            
+            message += `*Subtotal:* S/ ${subtotal.toFixed(2)}\n`;
+            if (shippingCost > 0) {
+                message += `- Costo de Envío: S/ ${shippingCost.toFixed(2)} (Otra Agencia)\n`;
+            } else {
+                message += `- Costo de Envío: Gratis (Agencia Shalom)\n`;
+            }
+            message += `*Total Final:* S/ ${total.toFixed(2)}\n\n`;
+            message += 'Por favor, confírmame disponibilidad y los pasos para el pago. ¡Gracias!';
+            
+            const encodedMessage = encodeURIComponent(message);
+            const phoneNumber = '51966314626'; // Código de país 51 (Perú) + número 966314626
+            const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
+            
+            window.open(whatsappUrl, '_blank');
+        });
+    }
+
+    // Cambiar dinámicamente placeholder y maxlength del número de documento según la selección
+    const docTypeSelect = document.getElementById('buyer-doc-type');
+    const docNumberInput = document.getElementById('buyer-doc-number');
+    if (docTypeSelect && docNumberInput) {
+        // Establecer valores iniciales por defecto (DNI)
+        docNumberInput.placeholder = 'Número de DNI (8 dígitos)';
+        docNumberInput.maxLength = 8;
+
+        docTypeSelect.addEventListener('change', (e) => {
+            const docType = e.target.value;
+            if (docType === 'DNI') {
+                docNumberInput.placeholder = 'Número de DNI (8 dígitos)';
+                docNumberInput.maxLength = 8;
+            } else if (docType === 'CE') {
+                docNumberInput.placeholder = 'Número de CE (9 dígitos)';
+                docNumberInput.maxLength = 9;
+            }
+            // Limpiar valores al cambiar para evitar envíos cruzados incorrectos
+            docNumberInput.value = '';
+            docNumberInput.classList.remove('input-error');
+        });
+    }
+
+    // Mostrar/ocultar dinámicamente el campo de agencia personalizada o buscador de Shalom según la selección
+    const agencySelect = document.getElementById('buyer-agency');
+    const customAgencyGroup = document.getElementById('buyer-custom-agency-group');
+    const customAgencyInput = document.getElementById('buyer-custom-agency');
+    const shalomAgencyGroup = document.getElementById('shalom-agency-finder-group');
+    const btnOpenShalomSelector = document.getElementById('btn-open-shalom-selector');
+    const destinationInput = document.getElementById('buyer-destination');
+
+    if (agencySelect) {
+        agencySelect.addEventListener('change', (e) => {
+            const val = e.target.value;
+            if (val === 'Otra') {
+                if (customAgencyGroup) customAgencyGroup.classList.remove('hidden');
+                if (shalomAgencyGroup) shalomAgencyGroup.classList.add('hidden');
+                if (customAgencyInput) customAgencyInput.focus();
+                
+                // Limpiar selección de Shalom y cerrar panel flotante
+                clearShalomSelection();
+                closeShalomSelector();
+            } else if (val === 'Shalom') {
+                if (customAgencyGroup) customAgencyGroup.classList.add('hidden');
+                if (shalomAgencyGroup) shalomAgencyGroup.classList.remove('hidden');
+                if (customAgencyInput) {
+                    customAgencyInput.value = '';
+                    customAgencyInput.classList.remove('input-error');
+                }
+                // Abrir buscador lateral automáticamente
+                openShalomSelector();
+            }
+            
+            // Re-renderizar carrito para actualizar el costo de envío y total final
+            renderCart();
+        });
+    }
+
+    // ==========================================================================
+    // BUSCADOR FLOTANTE DE AGENCIAS SHALOM
+    // ==========================================================================
+    const shalomFloatingSelector = document.getElementById('shalom-floating-selector');
+    const closeShalomSelectorBtn = document.getElementById('close-shalom-selector');
+    const shalomSearchInput = document.getElementById('shalom-search-input');
+    const clearShalomSearchBtn = document.getElementById('clear-shalom-search');
+    const shalomSelectorResults = document.getElementById('shalom-selector-results');
+    const selectedAgencyBadge = document.getElementById('selected-agency-badge');
+    const selectedAgencyInfo = document.getElementById('selected-agency-info');
+
+    let highlightedIndex = -1;
+    let filteredAgencies = [];
+
+    // Abrir el selector de agencias
+    function openShalomSelector() {
+        if (shalomFloatingSelector) {
+            shalomFloatingSelector.classList.remove('hidden');
+            if (shalomSearchInput) {
+                shalomSearchInput.focus();
+                
+                // Si la caja de búsqueda está vacía, cargar las primeras 30 agencias para explorar inmediatamente
+                if (!shalomSearchInput.value.trim()) {
+                    if (typeof SHALOM_AGENCIES !== 'undefined') {
+                        filteredAgencies = SHALOM_AGENCIES.slice(0, 30);
+                        renderAgencyResults();
+                    }
+                }
+            }
+        }
+    }
+
+    // Cerrar el selector de agencias
+    function closeShalomSelector() {
+        if (shalomFloatingSelector) {
+            shalomFloatingSelector.classList.add('hidden');
+            highlightedIndex = -1;
+        }
+    }
+
+    // Limpiar selección de agencias
+    function clearShalomSelection() {
+        selectedShalomAgency = null;
+        
+        if (btnOpenShalomSelector) {
+            btnOpenShalomSelector.innerHTML = '<span>🔍 Seleccionar Agencia Shalom...</span>';
+            btnOpenShalomSelector.classList.remove('input-error');
+        }
+        
+        if (selectedAgencyBadge) selectedAgencyBadge.classList.add('hidden');
+        if (selectedAgencyInfo) selectedAgencyInfo.innerHTML = 'Ninguna';
+        
+        if (destinationInput) {
+            destinationInput.value = '';
+            destinationInput.classList.remove('input-error');
+        }
+        
+        if (shalomSearchInput) {
+            shalomSearchInput.value = '';
+            shalomSearchInput.classList.remove('input-error');
+        }
+        if (clearShalomSearchBtn) clearShalomSearchBtn.classList.add('hidden');
+        
+        if (shalomSelectorResults) {
+            shalomSelectorResults.innerHTML = '';
+        }
+        
+        filteredAgencies = [];
+        highlightedIndex = -1;
+    }
+
+    // Registrar disparador en el carrito
+    if (btnOpenShalomSelector) {
+        btnOpenShalomSelector.addEventListener('click', (e) => {
+            e.stopPropagation();
+            openShalomSelector();
+        });
+    }
+
+    // Registrar botón de cerrar
+    if (closeShalomSelectorBtn) {
+        closeShalomSelectorBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            closeShalomSelector();
+        });
+    }
+
+    // Registrar limpiar búsqueda
+    if (clearShalomSearchBtn) {
+        clearShalomSearchBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (shalomSearchInput) {
+                shalomSearchInput.value = '';
+                clearShalomSearchBtn.classList.add('hidden');
+                shalomSearchInput.focus();
+                
+                // Cargar sugerencias por defecto (primeras 30)
+                if (typeof SHALOM_AGENCIES !== 'undefined') {
+                    filteredAgencies = SHALOM_AGENCIES.slice(0, 30);
+                    renderAgencyResults();
+                }
+            }
+        });
+    }
+
+    // Controlar escritura en buscador flotante
+    if (shalomSearchInput) {
+        shalomSearchInput.addEventListener('input', (e) => {
+            const query = e.target.value.trim().toLowerCase();
+            
+            if (!query) {
+                if (clearShalomSearchBtn) clearShalomSearchBtn.classList.add('hidden');
+                if (typeof SHALOM_AGENCIES !== 'undefined') {
+                    filteredAgencies = SHALOM_AGENCIES.slice(0, 30);
+                    renderAgencyResults();
+                }
+                return;
+            }
+
+            if (clearShalomSearchBtn) clearShalomSearchBtn.classList.remove('hidden');
+
+            // Filtrar agencias en tiempo real
+            if (typeof SHALOM_AGENCIES !== 'undefined') {
+                filteredAgencies = SHALOM_AGENCIES.filter(agency => 
+                    agency.name.toLowerCase().includes(query) || 
+                    agency.address.toLowerCase().includes(query)
+                ).slice(0, 30); // Limitar a 30 por rendimiento
+            }
+
+            renderAgencyResults();
+        });
+
+        // Eventos de teclado (flechas y enter) para el buscador flotante
+        shalomSearchInput.addEventListener('keydown', (e) => {
+            if (shalomFloatingSelector.classList.contains('hidden') || filteredAgencies.length === 0) return;
+
+            const cards = shalomSelectorResults.querySelectorAll('.shalom-panel-agency-card');
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                highlightedIndex = (highlightedIndex + 1) % cards.length;
+                updateHighlightedCard(cards);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                highlightedIndex = (highlightedIndex - 1 + cards.length) % cards.length;
+                updateHighlightedCard(cards);
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                if (highlightedIndex >= 0 && highlightedIndex < filteredAgencies.length) {
+                    selectAgency(filteredAgencies[highlightedIndex]);
+                }
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                closeShalomSelector();
+            }
+        });
+    }
+
+    // Ocultar selector si se hace click fuera del panel y fuera del botón de apertura
+    document.addEventListener('click', (e) => {
+        if (shalomFloatingSelector && !shalomFloatingSelector.classList.contains('hidden')) {
+            const clickedInsidePanel = shalomFloatingSelector.contains(e.target);
+            const clickedTriggerBtn = btnOpenShalomSelector && btnOpenShalomSelector.contains(e.target);
+            
+            if (!clickedInsidePanel && !clickedTriggerBtn) {
+                closeShalomSelector();
+            }
+        }
+    });
+
+    // Renderizar resultados de agencias en el panel flotante
+    function renderAgencyResults() {
+        if (!shalomSelectorResults) return;
+        
+        highlightedIndex = -1;
+        shalomSelectorResults.innerHTML = '';
+        
+        if (filteredAgencies.length === 0) {
+            shalomSelectorResults.innerHTML = '<div class="no-results-msg">No se encontraron agencias coincidentes</div>';
+            return;
+        }
+
+        filteredAgencies.forEach((agency, index) => {
+            const card = document.createElement('div');
+            card.className = 'shalom-panel-agency-card';
+            
+            // Marcar activa si es la actualmente seleccionada
+            if (selectedShalomAgency && selectedShalomAgency.name === agency.name) {
+                card.classList.add('active');
+            }
+            
+            card.setAttribute('data-index', index);
+            card.innerHTML = `
+                <span class="shalom-panel-agency-name">${agency.name}</span>
+                <span class="shalom-panel-agency-address">${agency.address}</span>
+                <span class="shalom-panel-agency-select-indicator">Seleccionar →</span>
+            `;
+            
+            card.addEventListener('click', (e) => {
+                e.stopPropagation();
+                selectAgency(agency);
+            });
+
+            shalomSelectorResults.appendChild(card);
+        });
+    }
+
+    // Actualizar visualmente la tarjeta destacada mediante teclado
+    function updateHighlightedCard(cards) {
+        cards.forEach(card => card.classList.remove('active'));
+        if (highlightedIndex >= 0 && highlightedIndex < cards.length) {
+            const activeCard = cards[highlightedIndex];
+            activeCard.classList.add('active');
+            
+            // Auto-scroll del contenedor hacia la tarjeta destacada si se sale de vista
+            activeCard.scrollIntoView({ block: 'nearest' });
+        }
+    }
+
+    // Seleccionar agencia y sincronizar UI con el carrito lateral
+    function selectAgency(agency) {
+        selectedShalomAgency = agency;
+        
+        // Actualizar botón disparador en el carrito
+        if (btnOpenShalomSelector) {
+            btnOpenShalomSelector.innerHTML = `<span>🔍 ${agency.name}</span>`;
+            btnOpenShalomSelector.classList.remove('input-error');
+        }
+        
+        // Actualizar distintivo (badge)
+        if (selectedAgencyInfo) {
+            selectedAgencyInfo.innerHTML = `<strong>${agency.name}</strong><br><small style="color: var(--color-text-muted); font-size: 0.8rem;">${agency.address}</small>`;
+        }
+        if (selectedAgencyBadge) {
+            selectedAgencyBadge.classList.remove('hidden');
+        }
+        
+        // Auto-completar destino físico
+        if (destinationInput) {
+            destinationInput.value = `${agency.name} - ${agency.address}`;
+            destinationInput.classList.remove('input-error');
+        }
+
+        // Cerrar panel flotante
+        closeShalomSelector();
+    }
+
+    // ==========================================================================
+    // CARRUSEL DE IMÁGENES RESPONSIVO (HERO BANNER)
+    // ==========================================================================
+    const heroShowcase = document.getElementById('main-hero-showcase');
+    const track = document.getElementById('hero-carousel-track');
+    if (heroShowcase && track) {
+        const slides = Array.from(track.querySelectorAll('.carousel-slide'));
+        const nextButton = document.getElementById('main-carousel-next');
+        const prevButton = document.getElementById('main-carousel-prev');
+        const dotsContainer = document.getElementById('main-carousel-dots');
+        const dots = Array.from(dotsContainer.querySelectorAll('.dot'));
+        
+        let currentIndex = 0;
+        let autoplayInterval = null;
+        let isHovered = false;
+
+        const updateCarousel = (index) => {
+            if (index < 0) index = slides.length - 1;
+            if (index >= slides.length) index = 0;
+            
+            currentIndex = index;
+            
+            // Desplazar el contenedor interno (track)
+            track.style.transform = `translateX(-${currentIndex * (100 / slides.length)}%)`;
+            
+            // Actualizar estado activo de los puntos de paginación
+            dots.forEach(dot => dot.classList.remove('active'));
+            dots[currentIndex].classList.add('active');
+        };
+
+        const nextSlide = () => {
+            updateCarousel(currentIndex + 1);
+        };
+
+        const prevSlide = () => {
+            updateCarousel(currentIndex - 1);
+        };
+
+        // Autoplay cada 5 segundos
+        const startAutoplay = () => {
+            stopAutoplay();
+            if (!isHovered) {
+                autoplayInterval = setInterval(nextSlide, 5000);
+            }
+        };
+
+        const stopAutoplay = () => {
+            if (autoplayInterval) {
+                clearInterval(autoplayInterval);
+                autoplayInterval = null;
+            }
+        };
+
+        const resetAutoplay = () => {
+            stopAutoplay();
+            startAutoplay();
+        };
+
+        // Eventos de botones prev/next
+        if (nextButton) {
+            nextButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                nextSlide();
+                resetAutoplay();
+            });
+        }
+
+        if (prevButton) {
+            prevButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                prevSlide();
+                resetAutoplay();
+            });
+        }
+
+        // Eventos al hacer click en los puntos de paginación
+        dots.forEach((dot, index) => {
+            dot.addEventListener('click', (e) => {
+                e.stopPropagation();
+                updateCarousel(index);
+                resetAutoplay();
+            });
+        });
+
+        // Iniciar el autoplay al cargar
+        startAutoplay();
+
+        // Detener autoplay cuando el usuario pasa el cursor sobre el carrusel
+        heroShowcase.addEventListener('mouseenter', () => {
+            isHovered = true;
+            stopAutoplay();
+        });
+        
+        // Reanudar autoplay al retirar el cursor (reinicia el temporizador de 5 segundos)
+        heroShowcase.addEventListener('mouseleave', () => {
+            isHovered = false;
+            startAutoplay();
         });
     }
 
