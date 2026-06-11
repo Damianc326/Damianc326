@@ -955,14 +955,27 @@ button {
 .product-img-display {
     width: 100%;
     height: 100%;
+    object-fit: contain;
+    object-position: center center;
+    border-radius: 12px;
+}
+
+.product-img-cover {
+    width: 100%;
+    height: 100%;
     object-fit: cover;
-    object-position: 60% center;
+    object-position: center center;
     border-radius: 12px;
 }
 
 .modal-image-wrapper img.product-img-display {
-    object-fit: cover;
-    object-position: 60% center;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center center;
     border-radius: 0;
     transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
     cursor: zoom-in;
@@ -1467,11 +1480,11 @@ button {
 
 .product-modal-content {
     background-color: var(--color-white);
-    width: 90%;
-    max-width: 1000px;
-    max-height: 90vh;
+    width: 95%;
+    max-width: 1150px;
+    max-height: 92vh;
     border-radius: 20px;
-    padding: 50px;
+    padding: 40px;
     position: relative;
     overflow-y: auto;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
@@ -1509,7 +1522,7 @@ button {
 
 .modal-grid {
     display: grid;
-    grid-template-columns: 1.25fr 0.75fr;
+    grid-template-columns: 1.1fr 0.9fr;
     gap: 40px;
 }
 
@@ -1520,13 +1533,15 @@ button {
     justify-content: center;
     align-items: center;
     padding: 0;
-    min-height: 450px;
+    min-height: 550px;
+    height: 100%;
     overflow: hidden;
 }
 
 .modal-image-wrapper {
     width: 100%;
     height: 100%;
+    position: relative;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -1547,6 +1562,9 @@ button {
 }
 
 .modal-image-wrapper img {
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
     object-fit: contain;
@@ -1626,18 +1644,44 @@ button {
 }
 
 .color-btn {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    border: 2px solid transparent;
-    outline: 2px solid var(--color-border);
-    outline-offset: 2px;
-    transition: outline-color 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    border-radius: 30px;
+    border: 1px solid var(--color-border);
+    background-color: var(--color-white);
+    color: var(--color-text-main);
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
     cursor: pointer;
+    box-shadow: var(--shadow-soft);
+}
+
+.color-btn:hover {
+    border-color: var(--color-text-muted);
 }
 
 .color-btn.active {
-    outline-color: var(--color-text-main);
+    border-color: var(--color-primary);
+    background-color: rgba(0, 61, 41, 0.03);
+    box-shadow: 0 0 0 1px var(--color-primary);
+}
+
+.color-swatch-dot {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    background-size: cover;
+    background-position: center;
+    flex-shrink: 0;
+}
+
+.color-name-label {
+    font-size: 0.85rem;
+    font-weight: 600;
 }
 
 .modal-actions-row {
@@ -1685,10 +1729,42 @@ button {
     gap: 15px;
 }
 
+@media (min-width: 769px) {
+    .product-modal-content {
+        overflow-y: hidden;
+    }
+    .modal-grid {
+        grid-template-columns: 0.9fr 1.1fr;
+        height: 680px;
+        max-height: calc(95vh - 140px);
+    }
+    .modal-image-col {
+        height: 100%;
+        min-height: 0;
+    }
+    .modal-details-col {
+        height: 100%;
+        overflow-y: auto;
+        padding-right: 15px;
+    }
+    .modal-details-col::-webkit-scrollbar {
+        width: 6px;
+    }
+    .modal-details-col::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .modal-details-col::-webkit-scrollbar-thumb {
+        background-color: var(--color-border);
+        border-radius: 3px;
+    }
+}
+
+
 @media (max-width: 768px) {
     .modal-grid { grid-template-columns: 1fr; gap: 30px; }
     .product-modal-content { padding: 30px; }
     .modal-buttons { grid-template-columns: 1fr; }
+    .modal-image-col { min-height: 400px; }
 }
 
 /* ==========================================================================

@@ -423,9 +423,53 @@ document.addEventListener('DOMContentLoaded', () => {
             modalProductTitle.textContent = title;
             modalCategory.textContent = category.charAt(0).toUpperCase() + category.slice(1);
             modalDesc.textContent = desc;
+            
+            // Renderizar características (viñetas) si existen
+            const featuresJson = card.getAttribute('data-features');
+            const modalFeatures = document.getElementById('modal-features');
+            if (modalFeatures) {
+                if (featuresJson) {
+                    modalFeatures.innerHTML = '';
+                    const features = JSON.parse(featuresJson);
+                    features.forEach(feat => {
+                        const li = document.createElement('li');
+                        li.innerHTML = feat.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                        li.style.marginBottom = '8px';
+                        modalFeatures.appendChild(li);
+                    });
+                    modalFeatures.style.display = 'block';
+                } else {
+                    modalFeatures.style.display = 'none';
+                }
+            }
+
+            // Renderizar precio de oferta y precio regular (tachado) si existe
+            const priceRegular = card.getAttribute('data-price-regular');
             modalPrice.textContent = `S/ ${price.toFixed(2)}`;
+            const modalPriceRegular = document.getElementById('modal-price-regular');
+            if (modalPriceRegular) {
+                if (priceRegular) {
+                    modalPriceRegular.textContent = `S/ ${parseFloat(priceRegular).toFixed(2)}`;
+                    modalPriceRegular.style.display = 'inline';
+                    modalPrice.style.color = 'var(--color-accent)'; // destacar oferta
+                } else {
+                    modalPriceRegular.style.display = 'none';
+                    modalPrice.style.color = 'var(--color-text-main)'; // color normal
+                }
+            }
+            
             if(modalFinancing) modalFinancing.style.display = 'none';
-            modalImageContainer.innerHTML = svgArt;
+            
+            const colorImagesJson = card.getAttribute('data-color-images');
+            if (colorImagesJson) {
+                const colorImages = JSON.parse(colorImagesJson);
+                const colors = JSON.parse(card.getAttribute('data-colors') || '[]');
+                const firstColor = colors[0];
+                const imageUrl = colorImages[firstColor] || card.querySelector('img').src;
+                modalImageContainer.innerHTML = `<img src="${imageUrl}" alt="${title}" class="product-img-display">`;
+            } else {
+                modalImageContainer.innerHTML = svgArt;
+            }
             
             modalRatingContainer.innerHTML = `<div class="stars-container" style="display:flex;">${ratingHtml}</div> <span class="modal-review-count">${reviewCount}</span>`;
             
@@ -452,21 +496,37 @@ document.addEventListener('DOMContentLoaded', () => {
                     "#eadecd": "Beige",
                     "#3e5a7a": "Azul Acero",
                     "#e2e8e4": "Gris Claro",
-                    "#e7eee9": "Verde Menta"
+                    "#e7eee9": "Verde Menta",
+                    "#b0b0b0": "Gris",
+                    "#8b5a2b": "Marrón",
+                    "#b22222": "Rojo",
+                    "#4169e1": "Azul Eléctrico",
+                    "#1d2a44": "Azul Marino Oscuro"
                 };
+
+                const colorImages = JSON.parse(card.getAttribute('data-color-images') || '{}');
 
                 colors.forEach((color, idx) => {
                     const btn = document.createElement('button');
                     btn.className = `color-btn${idx === 0 ? ' active' : ''}`;
-                    btn.style.background = color;
                     btn.setAttribute('data-color', color);
-                    btn.setAttribute('data-color-name', colorNamesMap[color] || color);
+                    const colorName = colorNamesMap[color] || color;
+                    btn.setAttribute('data-color-name', colorName);
+                    
+                    const dot = document.createElement('span');
+                    dot.className = 'color-swatch-dot';
+                    dot.style.backgroundColor = color;
+                    btn.appendChild(dot);
+                    
+                    const label = document.createElement('span');
+                    label.className = 'color-name-label';
+                    label.textContent = colorName;
+                    btn.appendChild(label);
                     
                     btn.addEventListener('click', () => {
                         colorOptionsContainer.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
                         btn.classList.add('active');
                         
-                        const colorImages = JSON.parse(card.getAttribute('data-color-images') || '{}');
                         if (colorImages[color]) {
                             const imgEl = modalImageContainer.querySelector('img');
                             if (imgEl) {
