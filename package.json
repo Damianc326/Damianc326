@@ -18,11 +18,5 @@
     "url": "https://github.com/Damianc326/Damianc326/issues"
   },
   "homepage": "https://github.com/Damianc326/Damianc326#readme",
-  "dependencies": {
-    "bcrypt": "^6.0.0",
-    "cors": "^2.8.6",
-    "express": "^5.2.1",
-    "msnodesqlv8": "^5.2.0",
-    "mssql": "^12.5.5"
-  }
+  "dependencies": {}
 }
