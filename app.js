@@ -22,10 +22,31 @@ document.addEventListener('DOMContentLoaded', () => {
     const typeCheckboxes = document.querySelectorAll('#filter-device-type input[type="checkbox"]');
     const priceRadios = document.querySelectorAll('#filter-price input[type="radio"]');
     const ratingRadios = document.querySelectorAll('#filter-review input[type="radio"]');
-    const finishCheckboxes = document.querySelectorAll('#filter-finish input[type="checkbox"]');
     const materialCheckboxes = document.querySelectorAll('#filter-material input[type="checkbox"]');
     const offerCheckboxes = document.querySelectorAll('#filter-offer input[type="checkbox"]');
     
+    // Mapa global de nombres de colores
+    const colorNamesMap = {
+        "#ff7a00": "Naranja",
+        "#333333": "Negro",
+        "#f4f4f4": "Blanco",
+        "#faf6ef": "Crema",
+        "#faf4ee": "Alabastro",
+        "#fcfaf0": "Hueso",
+        "#eadecd": "Beige",
+        "#3e5a7a": "Azul Acero",
+        "#e2e8e4": "Gris Claro",
+        "#e7eee9": "Verde Menta",
+        "#b0b0b0": "Gris",
+        "#8b5a2b": "Marrón",
+        "#b22222": "Rojo",
+        "#4169e1": "Azul Eléctrico",
+        "#1d2a44": "Azul Acero",
+        "#c68a4c": "Camel",
+        "#7c9e83": "Verde Cargo",
+        "#0b1d3a": "Azul Marino"
+    };
+
     // Objeto del estado activo de los filtros
     const activeFilters = {
         category: 'all',
@@ -33,7 +54,6 @@ document.addEventListener('DOMContentLoaded', () => {
         types: [],
         priceRange: 'all',
         minRating: 0,
-        finishes: [],
         materials: [],
         offers: []
     };
@@ -159,14 +179,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
-        // Checkboxes de acabados
-        finishCheckboxes.forEach(cb => {
-            cb.addEventListener('change', () => {
-                updateCheckboxFilter('finishes', finishCheckboxes);
-                toggleFilterBtnActive('filter-finish', activeFilters.finishes.length > 0);
-                applyFilters();
-            });
-        });
+
 
         // Checkboxes de materiales
         materialCheckboxes.forEach(cb => {
@@ -218,7 +231,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const rating = parseFloat(card.getAttribute('data-rating'));
             const category = card.getAttribute('data-category');
             const type = card.getAttribute('data-type');
-            const finish = card.getAttribute('data-finish');
             const material = card.getAttribute('data-material');
             const offer = card.getAttribute('data-offer');
             
@@ -228,10 +240,16 @@ document.addEventListener('DOMContentLoaded', () => {
             // Filtrado por categoría
             const matchesCategory = activeFilters.category === 'all' || category === activeFilters.category;
 
+            // Obtener nombres de colores del producto para la búsqueda
+            const colorsJson = card.getAttribute('data-colors');
+            const colorsList = colorsJson ? JSON.parse(colorsJson) : [];
+            const colorNames = colorsList.map(hex => (colorNamesMap[hex] || '').toLowerCase());
+
             // Filtrado por búsqueda en caja de texto
             const matchesSearch = activeFilters.searchQuery === '' || 
                                   title.includes(activeFilters.searchQuery) || 
-                                  subtext.includes(activeFilters.searchQuery);
+                                  subtext.includes(activeFilters.searchQuery) ||
+                                  colorNames.some(name => name.includes(activeFilters.searchQuery));
 
             // Filtrado por tipo de dispositivo
             const matchesType = activeFilters.types.length === 0 || activeFilters.types.includes(type);
@@ -249,9 +267,6 @@ document.addEventListener('DOMContentLoaded', () => {
             // Filtrado por valoración estrellas
             const matchesRating = rating >= activeFilters.minRating;
 
-            // Filtrado por acabados
-            const matchesFinish = activeFilters.finishes.length === 0 || activeFilters.finishes.includes(finish);
-
             // Filtrado por materiales
             const matchesMaterial = activeFilters.materials.length === 0 || activeFilters.materials.includes(material);
 
@@ -260,7 +275,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Intersección de todas las condiciones de filtrado
             const isVisible = matchesCategory && matchesSearch && matchesType && matchesPrice && 
-                              matchesRating && matchesFinish && matchesMaterial && matchesOffer;
+                              matchesRating && matchesMaterial && matchesOffer;
 
             if (isVisible) {
                 card.classList.remove('hidden');
@@ -309,10 +324,7 @@ document.addEventListener('DOMContentLoaded', () => {
         activeFilters.minRating = 0;
         toggleFilterBtnActive('filter-review', false);
 
-        // Desmarcar checkboxes de acabados
-        finishCheckboxes.forEach(cb => cb.checked = false);
-        activeFilters.finishes = [];
-        toggleFilterBtnActive('filter-finish', false);
+
 
         // Desmarcar checkboxes de materiales
         materialCheckboxes.forEach(cb => cb.checked = false);
@@ -486,23 +498,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const colorsJson = card.getAttribute('data-colors');
                 const colors = colorsJson ? JSON.parse(colorsJson) : ["#f4f4f4"];
                 
-                const colorNamesMap = {
-                    "#ff7a00": "Naranja",
-                    "#333333": "Negro",
-                    "#f4f4f4": "Blanco",
-                    "#faf6ef": "Crema",
-                    "#faf4ee": "Alabastro",
-                    "#fcfaf0": "Hueso",
-                    "#eadecd": "Beige",
-                    "#3e5a7a": "Azul Acero",
-                    "#e2e8e4": "Gris Claro",
-                    "#e7eee9": "Verde Menta",
-                    "#b0b0b0": "Gris",
-                    "#8b5a2b": "Marrón",
-                    "#b22222": "Rojo",
-                    "#4169e1": "Azul Eléctrico",
-                    "#1d2a44": "Azul Marino Oscuro"
-                };
+
 
                 const colorImages = JSON.parse(card.getAttribute('data-color-images') || '{}');
 
@@ -1210,6 +1206,91 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Cerrar panel flotante
         closeShalomSelector();
+    }
+
+    // ==========================================================================
+    // CARRUSEL DE IMÁGENES RESPONSIVO (HERO BANNER)
+    // ==========================================================================
+    const heroShowcase = document.getElementById('main-hero-showcase');
+    const track = document.getElementById('hero-carousel-track');
+    if (heroShowcase && track) {
+        const slides = Array.from(track.querySelectorAll('.carousel-slide'));
+        const nextButton = document.getElementById('main-carousel-next');
+        const prevButton = document.getElementById('main-carousel-prev');
+        const dotsContainer = document.getElementById('main-carousel-dots');
+        const dots = Array.from(dotsContainer.querySelectorAll('.dot'));
+        
+        let currentIndex = 0;
+        let autoplayInterval;
+
+        const updateCarousel = (index) => {
+            if (index < 0) index = slides.length - 1;
+            if (index >= slides.length) index = 0;
+            
+            currentIndex = index;
+            
+            // Desplazar el contenedor interno (track)
+            track.style.transform = `translateX(-${currentIndex * (100 / slides.length)}%)`;
+            
+            // Actualizar estado activo de los puntos de paginación
+            dots.forEach(dot => dot.classList.remove('active'));
+            dots[currentIndex].classList.add('active');
+        };
+
+        const nextSlide = () => {
+            updateCarousel(currentIndex + 1);
+        };
+
+        const prevSlide = () => {
+            updateCarousel(currentIndex - 1);
+        };
+
+        // Eventos de botones prev/next
+        if (nextButton) {
+            nextButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                nextSlide();
+                resetAutoplay();
+            });
+        }
+
+        if (prevButton) {
+            prevButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                prevSlide();
+                resetAutoplay();
+            });
+        }
+
+        // Eventos al hacer click en los puntos de paginación
+        dots.forEach((dot, index) => {
+            dot.addEventListener('click', (e) => {
+                e.stopPropagation();
+                updateCarousel(index);
+                resetAutoplay();
+            });
+        });
+
+        // Autoplay cada 5 segundos
+        const startAutoplay = () => {
+            autoplayInterval = setInterval(nextSlide, 5000);
+        };
+
+        const stopAutoplay = () => {
+            clearInterval(autoplayInterval);
+        };
+
+        const resetAutoplay = () => {
+            stopAutoplay();
+            startAutoplay();
+        };
+
+        // Iniciar el autoplay al cargar
+        startAutoplay();
+
+        // Detener autoplay cuando el usuario pasa el cursor sobre el carrusel
+        heroShowcase.addEventListener('mouseenter', stopAutoplay);
+        heroShowcase.addEventListener('mouseleave', startAutoplay);
     }
 
     // ==========================================================================
