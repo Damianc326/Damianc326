@@ -44,7 +44,12 @@ document.addEventListener('DOMContentLoaded', () => {
         "#1d2a44": "Azul Acero",
         "#c68a4c": "Camel",
         "#7c9e83": "Verde Cargo",
-        "#0b1d3a": "Azul Marino"
+        "#0b1d3a": "Azul Marino",
+        "#a0e0ff": "Celeste",
+        "#1a5fb4": "Azul",
+        "#76e5c1": "Cemento",
+        "#ffd54f": "Amarillo",
+        "#a3e12c": "Verde Olivo"
     };
 
     // Objeto del estado activo de los filtros
@@ -149,6 +154,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 link.style.fontWeight = '700';
                 
                 applyFilters();
+
+                // Redirigir (desplazar) la pantalla hacia la cuadrícula de productos
+                const targetSection = document.getElementById('products-grid-section');
+                if (targetSection) {
+                    targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
             });
         });
 
@@ -200,7 +211,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         // Botón de restablecer filtros en estado vacío
-        resetFiltersBtn.addEventListener('click', resetAllFilters);
+        if (resetFiltersBtn) {
+            resetFiltersBtn.addEventListener('click', resetAllFilters);
+        }
     }
 
     // Auxiliar: Almacena los valores de checkboxes seleccionados
@@ -346,10 +359,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================================================
     
     function initSorting() {
-        sortSelect.addEventListener('change', (e) => {
-            const criteria = e.target.value;
-            sortGridItems(criteria);
-        });
+        if (sortSelect) {
+            sortSelect.addEventListener('change', (e) => {
+                const criteria = e.target.value;
+                sortGridItems(criteria);
+            });
+        }
     }
 
     // Reordenar elementos de la cuadrícula en el DOM
@@ -1221,7 +1236,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const dots = Array.from(dotsContainer.querySelectorAll('.dot'));
         
         let currentIndex = 0;
-        let autoplayInterval;
+        let autoplayInterval = null;
+        let isHovered = false;
 
         const updateCarousel = (index) => {
             if (index < 0) index = slides.length - 1;
@@ -1243,6 +1259,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const prevSlide = () => {
             updateCarousel(currentIndex - 1);
+        };
+
+        // Autoplay cada 5 segundos
+        const startAutoplay = () => {
+            stopAutoplay();
+            if (!isHovered) {
+                autoplayInterval = setInterval(nextSlide, 5000);
+            }
+        };
+
+        const stopAutoplay = () => {
+            if (autoplayInterval) {
+                clearInterval(autoplayInterval);
+                autoplayInterval = null;
+            }
+        };
+
+        const resetAutoplay = () => {
+            stopAutoplay();
+            startAutoplay();
         };
 
         // Eventos de botones prev/next
@@ -1271,26 +1307,20 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
-        // Autoplay cada 5 segundos
-        const startAutoplay = () => {
-            autoplayInterval = setInterval(nextSlide, 5000);
-        };
-
-        const stopAutoplay = () => {
-            clearInterval(autoplayInterval);
-        };
-
-        const resetAutoplay = () => {
-            stopAutoplay();
-            startAutoplay();
-        };
-
         // Iniciar el autoplay al cargar
         startAutoplay();
 
         // Detener autoplay cuando el usuario pasa el cursor sobre el carrusel
-        heroShowcase.addEventListener('mouseenter', stopAutoplay);
-        heroShowcase.addEventListener('mouseleave', startAutoplay);
+        heroShowcase.addEventListener('mouseenter', () => {
+            isHovered = true;
+            stopAutoplay();
+        });
+        
+        // Reanudar autoplay al retirar el cursor (reinicia el temporizador de 5 segundos)
+        heroShowcase.addEventListener('mouseleave', () => {
+            isHovered = false;
+            startAutoplay();
+        });
     }
 
     // ==========================================================================
