@@ -1,22 +1,22 @@
 const express = require('express');
 const cors = require('cors');
-const sql = require('mssql/msnodesqlv8');
+const sql = require('mssql');
 const bcrypt = require('bcrypt');
 
 const app = express();
 app.use(cors());
 app.use(express.json()); // Permite recibir datos en formato JSON
 
-// Configuración de la base de datos para Autenticación de Windows
+// Configuración de la base de datos para Azure SQL
 const dbConfig = {
-    server: '.\\SQLEXPRESS',
+    server: 'outsilver-dani-server.database.windows.net', // Servidor de Azure
     database: 'OutSilverDB',
-    driver: 'msnodesqlv8',
+    user: 'CloudSA56309514@outsilver-dani-server', // Formato especial para Azure
+    password: 'Daniel.c.h123/', // <-- BORRA ESTO Y ESCRIBE TU CONTRASEÑA REAL ENTRE LAS COMILLAS
     options: {
-        trustedConnection: true
-    },
-    // Es VITAL poner el connectionString aquí para forzar el uso del Driver 17 que tienes instalado
-    connectionString: 'Driver={ODBC Driver 17 for SQL Server};Server=.\\SQLEXPRESS;Database=OutSilverDB;Trusted_Connection=yes;'
+        encrypt: true, // Requerido para Azure
+        trustServerCertificate: false
+    }
 };
 
 // Conectar a la base de datos PRIMERO, luego arrancar el servidor web
